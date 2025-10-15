@@ -1,0 +1,35 @@
+name: Build RW4ArchiveTool
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore RW4ArchiveTool.sln
+
+      - name: Build solution
+        run: msbuild RW4ArchiveTool.sln /p:Configuration=Release /p:Platform=x64
+
+      - name: Create ZIP archive
+        run: powershell Compress-Archive -Path .\x64\Release\* -DestinationPath .\RW4ArchiveTool.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RW4ArchiveTool
+          path: RW4ArchiveTool.zip
